@@ -131,6 +131,7 @@ void Lock::Acquire()
 }
 void Lock::Release()
 {
+    ASSERT(isHeldByCurrentThread());
     Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
