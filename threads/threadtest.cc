@@ -277,6 +277,7 @@ void ThreadTest()
             t->Fork(BoundBufferTest, i);
         }
         BoundBufferTest(0);
+        break;
     default:
         printf("No test specified.\n");
         break;
