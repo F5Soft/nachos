@@ -25,12 +25,12 @@ operating system tables of processes, threads, memory page frames, open
 files, etc.
 
 */
-
+#include "synch.h"
 
 class Table {
    public:
      // create a table to hold at most 'size' entries.
-     Table(size);
+     Table(int size);
    
      // allocate a table slot for 'object'.
      // return the table index for the slot or -1 on error.
@@ -45,5 +45,9 @@ class Table {
      void Release(int index);
    private:
      // Your code here.
+     Lock *tablelock; //use table to ensure thread-safe
+     void **table; // the table structure where we store user data
+     int *value; // use as a flag to show whether a slot has already been taken
+     int tablesize;
 };
 
