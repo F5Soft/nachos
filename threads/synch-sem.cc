@@ -1,6 +1,6 @@
-// synch.cc 
+// synch.cc
 //	Routines for synchronizing threads.  Three kinds of
-//	synchronization routines are defined here: semaphores, locks 
+//	synchronization routines are defined here: semaphores, locks
 //   	and condition variables (the implementation of the last two
 //	are left to the reader).
 //
@@ -18,11 +18,11 @@
 // that be disabled or enabled).
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
-#include "synch.h"
+#include "synch-sem.h"
 #include "system.h"
 
 //----------------------------------------------------------------------
@@ -33,11 +33,11 @@
 //	"initialValue" is the initial value of the semaphore.
 //----------------------------------------------------------------------
 
-Semaphore::Semaphore(char* debugName, int initialValue)
+Semaphore::Semaphore(char *debugName, int initialValue)
 {
-    name = debugName;
-    value = initialValue;
-    queue = new List;
+	name = debugName;
+	value = initialValue;
+	queue = new List;
 }
 
 //----------------------------------------------------------------------
@@ -48,7 +48,7 @@ Semaphore::Semaphore(char* debugName, int initialValue)
 
 Semaphore::~Semaphore()
 {
-    delete queue;
+	delete queue;
 }
 
 //----------------------------------------------------------------------
@@ -61,19 +61,19 @@ Semaphore::~Semaphore()
 //	when it is called.
 //----------------------------------------------------------------------
 
-void
-Semaphore::P() //获取锁
+void Semaphore::P() //获取锁
 {
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);	// disable interrupts
-    
-    while (value == 0) { 			// semaphore not available
-		queue->Append((void *)currentThread);	// so go to sleep
+	IntStatus oldLevel = interrupt->SetLevel(IntOff); // disable interrupts
+
+	while (value == 0)
+	{										  // semaphore not available
+		queue->Append((void *)currentThread); // so go to sleep
 		currentThread->Sleep();
-    } 
-    value--; 					// semaphore available, 
-						// consume its value
-    
-    (void) interrupt->SetLevel(oldLevel);	// re-enable interrupts
+	}
+	value--; // semaphore available,
+			 // consume its value
+
+	(void)interrupt->SetLevel(oldLevel); // re-enable interrupts
 }
 
 //----------------------------------------------------------------------
@@ -86,91 +86,95 @@ Semaphore::P() //获取锁
 
 void Semaphore::V() //释放锁
 {
-    Thread *thread;
-    IntStatus oldLevel = interrupt->SetLevel(IntOff);
-    
+	Thread *thread;
+	IntStatus oldLevel = interrupt->SetLevel(IntOff);
+
 	thread = (Thread *)queue->Remove();
-    if (thread != NULL)	   // make thread ready, consuming the V immediately
+	if (thread != NULL) // make thread ready, consuming the V immediately
 		scheduler->ReadyToRun(thread);
-    value++;
-    (void) interrupt->SetLevel(oldLevel);
+	value++;
+	(void)interrupt->SetLevel(oldLevel);
 }
 
-// Dummy functions -- so we can compile our later assignments 
-// Note -- without a correct implementation of Condition::Wait(), 
+// Dummy functions -- so we can compile our later assignments
+// Note -- without a correct implementation of Condition::Wait(),
 // the test case in the network assignment won't work!
 
-Lock::Lock(char* debugName)
+Lock::Lock(char *debugName)
 {
 	name = debugName;
-	owner = NULL;
-	sem = new Semaphore(debugName,1);
+	helder = NULL;
+	sem = new Semaphore(debugName, 1);
+	sMutex = new Semaphore("smutex", 1);
 }
 
 Lock::~Lock()
 {
 	delete sem;
+	delete sMutex;
 }
 
-void Lock::Acquire() 
+void Lock::Acquire()
 {
 	ASSERT(!isHeldByCurrentThread());
+	sMutex->P();
 	sem->P();
-	owner = currentThread;
+	helder = currentThread;
+	sMutex->V();
 }
 
-void Lock::Release() 
+void Lock::Release()
 {
 	ASSERT(isHeldByCurrentThread());
+	sMutex->P();
 	sem->V();
-	owner = NULL;
+	helder = NULL;
+	sMutex->V();
 }
 
 bool Lock::isHeldByCurrentThread()
 {
-	return(currentThread == owner);
+	return (currentThread == helder);
 }
 
-Condition::Condition(char* debugName) 
+Condition::Condition(char *debugName)
 {
 	name = debugName;
-	sem = new Semaphore(debugName,0);
-	value = 0;	
+	sem = new Semaphore(debugName, 0);
+	value = 0;
 }
 
-Condition::~Condition() 
+Condition::~Condition()
 {
 	delete sem;
 }
 
-void Condition::Wait(Lock* conditionLock) 
+void Condition::Wait(Lock *conditionLock)
 {
-	heldLock = conditionLock;
+	ASSERT(conditionLock->isHeldByCurrentThread());
+	lock = conditionLock;
 	conditionLock->Release();
 	value++;
 	sem->P();
-	conditionLock->Acquire(); 
+	conditionLock->Acquire();
 }
 
-void Condition::Signal(Lock* conditionLock) 
+void Condition::Signal(Lock *conditionLock)
 {
-	ASSERT(conditionLock == heldLock || heldLock == NULL); 
-	// ensure every call to Signal and Wait passes an associated mutex
-	
-	if(value>0) {
+	ASSERT(conditionLock->isHeldByCurrentThread() && lock == conditionLock);
+	if (value > 0)
+	{
 		sem->V();
 		value--;
 	}
 }
 
-void Condition::Broadcast(Lock* conditionLock) 
+void Condition::Broadcast(Lock *conditionLock)
 {
-	ASSERT(conditionLock == heldLock || heldLock == NULL); 
-	// ensure every call to Broadcast and Wait passes an associated mutex
-	
-	while(value>0) {
+	ASSERT(conditionLock->isHeldByCurrentThread() && lock == conditionLock);
+	while (value > 0)
+	{
 		sem->V();
 		value--;
 	}
 }
-

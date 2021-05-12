@@ -80,8 +80,8 @@ class Lock {
   private:
     char* name;				// for debugging
     // plus some other stuff you'll need to define   
-    Semaphore *sem;
-    Thread *owner;
+    Semaphore *sem, *sMutex;
+    Thread *helder;
 };
 
 // The following class defines a "condition variable".  A condition
@@ -136,7 +136,7 @@ class Condition {
     // plus some other stuff you'll need to define
     Semaphore *sem;
     int value;
-    Lock* heldLock; 
+    Lock* lock; 
     // for ensuring every call to Signal and Wait passes an associated mutex
 };
 #endif // SYNCH_H

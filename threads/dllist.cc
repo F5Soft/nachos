@@ -20,7 +20,7 @@ DLList::~DLList()
 {
     while (first != NULL)
         Remove(NULL);
-    lock->~Lock();
+    delete lock;
 }
 
 void DLList::Prepend(void *item)

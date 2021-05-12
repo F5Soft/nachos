@@ -107,13 +107,14 @@ Lock::Lock(char* debugName) {
     helder=NULL;
 }
 Lock::~Lock() {
-    delete name;
+    delete queue;
 }
 //测试用
 void Lock::GetValue(){
     printf("Value is %d\n", value);
 }
 void Lock::Acquire() {
+    ASSERT(!isHeldByCurrentThread());
     IntStatus oldLevel = interrupt->SetLevel(IntOff);   // 关中断
     
     while (value == 0) {            
@@ -126,18 +127,15 @@ void Lock::Acquire() {
     (void) interrupt->SetLevel(oldLevel);   //开中断
 }
 void Lock::Release() {
+    ASSERT(isHeldByCurrentThread());
     Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
-    ASSERT(isHeldByCurrentThread());
+
     thread = (Thread *)queue->Remove();
     if (thread != NULL)    // make thread ready, consuming the V immediately
-    {
-        helder=thread;
         scheduler->ReadyToRun(thread);
-    }
     value=1;
-    if(value==1)
-        helder=NULL;
+    helder=NULL;
     (void) interrupt->SetLevel(oldLevel);
 }
 bool Lock::isHeldByCurrentThread()   // true if the current thread
@@ -149,7 +147,7 @@ Condition::Condition(char* debugName) {
     queue = new List;
 }
 Condition::~Condition() { 
-    delete name;
+    delete queue;
 }
 /*
 功能 阻塞一个等待条件变量
@@ -166,6 +164,7 @@ void Condition::Wait(Lock* conditionLock) {
     //ASSERT(FALSE);
     //conditionLock->Acquire();   //锁跟中断两个都要？  
     ASSERT(conditionLock->isHeldByCurrentThread());
+    lock = conditionLock;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     conditionLock->Release();
     queue->Append((void *)currentThread);   // so go to sleep
@@ -175,6 +174,7 @@ void Condition::Wait(Lock* conditionLock) {
     (void) interrupt->SetLevel(oldLevel);
 }
 void Condition::Signal(Lock* conditionLock) {
+    ASSERT(conditionLock->isHeldByCurrentThread() && lock == conditionLock);
     Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     thread = (Thread *)queue->Remove();
@@ -183,6 +183,7 @@ void Condition::Signal(Lock* conditionLock) {
     (void) interrupt->SetLevel(oldLevel);
 }
 void Condition::Broadcast(Lock* conditionLock) {
+    ASSERT(conditionLock->isHeldByCurrentThread() && lock == conditionLock);
     Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     thread = (Thread *)queue->Remove();

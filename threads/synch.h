@@ -138,6 +138,7 @@ public:
 private:
     char *name;
     List *queue;
+    Lock *lock;
     // plus some other stuff you'll need to define
 };
 #endif // SYNCH_H
