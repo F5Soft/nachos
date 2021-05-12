@@ -67,7 +67,7 @@ extern void StartProcess(char *file), ConsoleTest(char *in, char *out);
 extern void MailTest(int networkID);
 
 //----------------------------------------------------------------------
-// main
+// main 
 // 	Bootstrap the operating system kernel.
 //
 //	Check command line arguments

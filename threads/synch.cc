@@ -1,6 +1,6 @@
-// synch.cc
+// synch.cc 
 //  Routines for synchronizing threads.  Three kinds of
-//  synchronization routines are defined here: semaphores, locks
+//  synchronization routines are defined here: semaphores, locks 
 //      and condition variables (the implementation of the last two
 //  are left to the reader).
 //
@@ -18,7 +18,7 @@
 // that be disabled or enabled).
 //
 // Copyright (c) 1992-1993 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation
+// All rights reserved.  See copyright.h for copyright notice and limitation 
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -33,11 +33,11 @@
 //  "initialValue" is the initial value of the semaphore.
 //----------------------------------------------------------------------
 
-Semaphore::Semaphore(char *debugName, int initialValue)
+Semaphore::Semaphore(char* debugName, int initialValue)
 {
-    name = debugName;     //信号量名字
-    value = initialValue; //初始值
-    queue = new List;     //队列
+    name = debugName;   //信号量名字
+    value = initialValue;   //初始值
+    queue = new List;   //队列
 }
 
 //----------------------------------------------------------------------
@@ -61,19 +61,19 @@ Semaphore::~Semaphore()
 //  when it is called.
 //----------------------------------------------------------------------
 
-void Semaphore::P() //获取锁
+void
+Semaphore::P()      //获取锁
 {
-    IntStatus oldLevel = interrupt->SetLevel(IntOff); // disable interrupts
-
-    while (value == 0)
-    {                                         // semaphore not available
-        queue->Append((void *)currentThread); // so go to sleep
-        currentThread->Sleep();
-    }
-    value--; // semaphore available,
-             // consume its value
-
-    (void)interrupt->SetLevel(oldLevel); // re-enable interrupts
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);   // disable interrupts
+    
+    while (value == 0) {            // semaphore not available
+    queue->Append((void *)currentThread);   // so go to sleep
+    currentThread->Sleep();
+    } 
+    value--;                    // semaphore available, 
+                        // consume its value
+    
+    (void) interrupt->SetLevel(oldLevel);   // re-enable interrupts
 }
 
 //----------------------------------------------------------------------
@@ -84,76 +84,71 @@ void Semaphore::P() //获取锁
 //  are disabled when it is called.
 //----------------------------------------------------------------------
 
-void Semaphore::V() //释放锁
+void
+Semaphore::V()     //释放锁
 {
     Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
 
     thread = (Thread *)queue->Remove();
-    if (thread != NULL) // make thread ready, consuming the V immediately
-        scheduler->ReadyToRun(thread);
+    if (thread != NULL)    // make thread ready, consuming the V immediately
+    scheduler->ReadyToRun(thread);
     value++;
-    (void)interrupt->SetLevel(oldLevel);
+    (void) interrupt->SetLevel(oldLevel);
 }
 
-// Dummy functions -- so we can compile our later assignments
-// Note -- without a correct implementation of Condition::Wait(),
+// Dummy functions -- so we can compile our later assignments 
+// Note -- without a correct implementation of Condition::Wait(), 
 // the test case in the network assignment won't work!
-Lock::Lock(char *debugName)
-{
-    name = debugName;
-    value = 1;
-    queue = new List; //队列
-    helder = NULL;
+Lock::Lock(char* debugName) {
+    name=debugName;
+    value=1;
+    queue = new List;   //队列
+    helder=NULL;
 }
-Lock::~Lock()
-{
+Lock::~Lock() {
     delete name;
 }
 //测试用
-void Lock::GetValue()
-{
+void Lock::GetValue(){
     printf("Value is %d\n", value);
 }
-void Lock::Acquire()
-{
-    IntStatus oldLevel = interrupt->SetLevel(IntOff); // 关中断
-
-    while (value == 0)
-    {                                         // semaphore not available
-        queue->Append((void *)currentThread); // so go to sleep
-        currentThread->Sleep();
-    }
-    value--;                // semaphore available,
-    helder = currentThread; // consume its value
-
-    (void)interrupt->SetLevel(oldLevel); //开中断
+void Lock::Acquire() {
+    IntStatus oldLevel = interrupt->SetLevel(IntOff);   // 关中断
+    
+    while (value == 0) {            
+    queue->Append((void *)currentThread);   
+    currentThread->Sleep();
+    } 
+    value=0;                    
+    helder=currentThread;                    
+    
+    (void) interrupt->SetLevel(oldLevel);   //开中断
 }
-void Lock::Release()
-{
-    ASSERT(isHeldByCurrentThread());
+void Lock::Release() {
     Thread *thread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
-
+    ASSERT(isHeldByCurrentThread());
     thread = (Thread *)queue->Remove();
-    if (thread != NULL) // make thread ready, consuming the V immediately
+    if (thread != NULL)    // make thread ready, consuming the V immediately
+    {
+        helder=thread;
         scheduler->ReadyToRun(thread);
-    value++;
-    if (value == 1)
-        helder = NULL;
-    (void)interrupt->SetLevel(oldLevel);
+    }
+    value=1;
+    if(value==1)
+        helder=NULL;
+    (void) interrupt->SetLevel(oldLevel);
 }
-bool Lock::isHeldByCurrentThread() // true if the current thread
+bool Lock::isHeldByCurrentThread()   // true if the current thread
 {
-    return (currentThread == helder);
+    return (currentThread==helder);
 }
-Condition::Condition(char *debugName)
-{
-    name = debugName;
+Condition::Condition(char* debugName) { 
+    name=debugName;
     queue = new List;
 }
-Condition::~Condition()
-{
+Condition::~Condition() { 
     delete name;
 }
 /*
@@ -167,41 +162,34 @@ Condition::~Condition()
 参数 cond 指向要初始化的条件变量指针，mutex 互斥锁
 返回 成功 0     失败 非0错误码
 */
-void Condition::Wait(Lock *conditionLock)
-{
+void Condition::Wait(Lock* conditionLock) { 
     //ASSERT(FALSE);
-    //conditionLock->Acquire();   //锁跟中断两个都要？
+    //conditionLock->Acquire();   //锁跟中断两个都要？  
     ASSERT(conditionLock->isHeldByCurrentThread());
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     conditionLock->Release();
-    queue->Append((void *)currentThread); // so go to sleep
+    queue->Append((void *)currentThread);   // so go to sleep
     currentThread->Sleep();
 
-    //conditionLock->Release();
-    (void)interrupt->SetLevel(oldLevel);
+    conditionLock->Acquire();
+    (void) interrupt->SetLevel(oldLevel);
 }
-void Condition::Signal(Lock *conditionLock)
-{
+void Condition::Signal(Lock* conditionLock) {
     Thread *thread;
-    //conditionLock->Acquire();
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     thread = (Thread *)queue->Remove();
-    if (thread != NULL) // make thread ready, consuming the V immediately
+    if (thread != NULL)    // make thread ready, consuming the V immediately
         scheduler->ReadyToRun(thread);
-    //conditionLock->Release();
-    (void)interrupt->SetLevel(oldLevel);
+    (void) interrupt->SetLevel(oldLevel);
 }
-void Condition::Broadcast(Lock *conditionLock)
-{
+void Condition::Broadcast(Lock* conditionLock) {
     Thread *thread;
-    //conditionLock->Acquire();
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     thread = (Thread *)queue->Remove();
-    while (thread != NULL) // make thread ready, consuming the V immediately
+    while(thread != NULL)    // make thread ready, consuming the V immediately
     {
         scheduler->ReadyToRun(thread);
         thread = (Thread *)queue->Remove();
     }
-    //conditionLock->Release();
-    (void)interrupt->SetLevel(oldLevel);
+    (void) interrupt->SetLevel(oldLevel);
 }
