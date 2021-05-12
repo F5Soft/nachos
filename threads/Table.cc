@@ -14,7 +14,8 @@ Table::Table(int size)
     tablelock = new Lock("Tablelock");
     table = new void *[size];
     value = new int[size];
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++)
+    {
         value[i] = 0;
     }
 }
@@ -42,8 +43,10 @@ int Table::Alloc(void *object)
     int i;
     tablelock->Acquire();
     printf("thread %p alloc", currentThread);
-    for (i = 0; i < tablesize; i++) {
-        if (value[i] == 0) {
+    for (i = 0; i < tablesize; i++)
+    {
+        if (value[i] == 0)
+        {
             table[i] = object;
             value[i] = 1;
             printf("table[%d]:%d.\n", i, (int)object);
@@ -66,17 +69,21 @@ void Table::Release(int index)
 {
     tablelock->Acquire();
     printf("thread %p release", currentThread);
-    if (index >= 0 && index < tablesize) {
-        if (value[index] == 1) {
+    if (index >= 0 && index < tablesize)
+    {
+        if (value[index] == 1)
+        {
             value[index] = 0;
             table[index] = NULL;
             printf("table[%d] has been released.\n", index);
-        } 
-        else {
+        }
+        else
+        {
             printf("table[%d] is NULL.\n");
         }
     }
-    else {
+    else
+    {
         printf("index %d out of bounds.\n", index);
     }
     tablelock->Release();
@@ -94,17 +101,21 @@ void *Table::Get(int index)
 {
     tablelock->Acquire();
     printf("thread %p get", currentThread);
-    if (index >= 0 && index < tablesize) {
-        if (value[index] == 1) {
-            printf("table[%d]:%d\n", index,(int)table[index]);
+    if (index >= 0 && index < tablesize)
+    {
+        if (value[index] == 1)
+        {
+            printf("table[%d]:%d\n", index, (int)table[index]);
             tablelock->Release();
             return (void *)table[index];
         }
-        else {
+        else
+        {
             printf("table[%d] is empty.\n", index);
         }
     }
-    else {
+    else
+    {
         printf("index %d out of bounds.\n", index);
     }
     tablelock->Release();

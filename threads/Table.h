@@ -27,27 +27,27 @@ files, etc.
 */
 #include "synch.h"
 
-class Table {
-   public:
-     // create a table to hold at most 'size' entries.
-     Table(int size);
-   
-     // allocate a table slot for 'object'.
-     // return the table index for the slot or -1 on error.
-     int Alloc(void *object);
-   
-     // return the object from table index 'index' or NULL on error.
-     // (assert index is in range).  Leave the table entry allocated
-     // and the pointer in place.
-     void *Get(int index);
-   
-     // free a table slot
-     void Release(int index);
-   private:
-     // Your code here.
-     Lock *tablelock; //use table to ensure thread-safe
-     void **table; // the table structure where we store user data
-     int *value; // use as a flag to show whether a slot has already been taken
-     int tablesize;
-};
+class Table
+{
+public:
+	// create a table to hold at most 'size' entries.
+	Table(int size);
 
+	// allocate a table slot for 'object'.
+	// return the table index for the slot or -1 on error.
+	int Alloc(void *object);
+
+	// return the object from table index 'index' or NULL on error.
+	// (assert index is in range).  Leave the table entry allocated
+	// and the pointer in place.
+	void *Get(int index);
+
+	// free a table slot
+	void Release(int index);
+
+private:
+	Lock *tablelock; //use table to ensure thread-safe
+	void **table;	 // the table structure where we store user data
+	int *value;		 // use as a flag to show whether a slot has already been taken
+	int tablesize;
+};
