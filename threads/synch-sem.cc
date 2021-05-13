@@ -61,7 +61,7 @@ Semaphore::~Semaphore()
 //	when it is called.
 //----------------------------------------------------------------------
 
-void Semaphore::P() //获取锁
+void Semaphore::P()
 {
 	IntStatus oldLevel = interrupt->SetLevel(IntOff); // disable interrupts
 
@@ -84,7 +84,7 @@ void Semaphore::P() //获取锁
 //	are disabled when it is called.
 //----------------------------------------------------------------------
 
-void Semaphore::V() //释放锁
+void Semaphore::V()
 {
 	Thread *thread;
 	IntStatus oldLevel = interrupt->SetLevel(IntOff);
