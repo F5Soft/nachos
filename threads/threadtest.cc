@@ -6,6 +6,9 @@
 #include "BoundBuffer.h"
 //sleep会唤醒就绪态进程
 
+#include "Table.h"
+#include <sys/time.h>
+
 int testnum = 0;
 int N = 5;
 int T = 5;
@@ -14,6 +17,8 @@ Lock *lock = new Lock("l2");
 
 DLList *list = new DLList("l1");
 BoundedBuffer *buffer = new BoundedBuffer(10);
+
+Table *table = new Table(10);
 
 void Test(int tid)
 {
@@ -205,6 +210,26 @@ void BoundBufferTest(int tid)
     }
 }
 
+int getRandom()
+{
+	struct timeval tv;
+    struct timezone tz;
+    gettimeofday(&tv, &tz);
+    return ((tv.tv_usec * 2 + 1) % 100);
+}
+void TableTest(int tid)
+{
+    int elem = getRandom();
+    void *obj = (void *)elem;
+    int position;
+
+    position = table -> Alloc(obj);
+    if (position != -1) {
+        elem = (int)table->Get(position);
+        table->Release(position);
+    }
+}
+
 void ThreadTest()
 {
     Thread *t;
@@ -277,6 +302,15 @@ void ThreadTest()
             t->Fork(BoundBufferTest, i);
         }
         BoundBufferTest(0);
+        break;
+    case 9:
+        printf("Init a 10 slots table.\nThread 0 to T want to insert data into the table and then remove it\n");
+        for (int i = 1;i <= T; i++)
+        {
+            Thread *t = new Thread("fork thread");
+            t -> Fork(TableTest, i);
+        }
+        TableTest(0);
         break;
     default:
         printf("No test specified.\n");

@@ -42,7 +42,7 @@ int Table::Alloc(void *object)
 {
     int i;
     tablelock->Acquire();
-    printf("thread %p alloc", currentThread);
+    printf("thread %p alloc ", currentThread);
     for (i = 0; i < tablesize; i++)
     {
         if (value[i] == 0)
@@ -68,7 +68,7 @@ int Table::Alloc(void *object)
 void Table::Release(int index)
 {
     tablelock->Acquire();
-    printf("thread %p release", currentThread);
+    printf("thread %p release ", currentThread);
     if (index >= 0 && index < tablesize)
     {
         if (value[index] == 1)
@@ -79,7 +79,7 @@ void Table::Release(int index)
         }
         else
         {
-            printf("table[%d] is NULL.\n");
+            printf("table[%d] is NULL.\n", index);
         }
     }
     else
@@ -100,7 +100,7 @@ void Table::Release(int index)
 void *Table::Get(int index)
 {
     tablelock->Acquire();
-    printf("thread %p get", currentThread);
+    printf("thread %p get ", currentThread);
     if (index >= 0 && index < tablesize)
     {
         if (value[index] == 1)

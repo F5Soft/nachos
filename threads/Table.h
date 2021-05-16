@@ -32,7 +32,7 @@ class Table
 public:
 	// create a table to hold at most 'size' entries.
 	Table(int size);
-
+	~Table();
 	// allocate a table slot for 'object'.
 	// return the table index for the slot or -1 on error.
 	int Alloc(void *object);
