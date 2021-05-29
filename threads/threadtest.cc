@@ -7,6 +7,7 @@
 //sleep会唤醒就绪态进程
 
 #include "Table.h"
+#include "Alarm.h"
 #include <sys/time.h>
 
 int testnum = 0;
@@ -230,6 +231,14 @@ void TableTest(int tid)
     }
 }
 
+void AlarmTest(int which)
+{
+    int howlong = Random() % 10000;
+    printf("thread %d is waiting %d Tick now=%d\n", which, howlong, stats -> totalTicks);
+    Alarm::instance -> Pause(howlong);
+    printf("thread %d is ok now=%d\n", which, stats -> totalTicks);
+}
+
 void ThreadTest()
 {
     Thread *t;
@@ -311,6 +320,14 @@ void ThreadTest()
             t -> Fork(TableTest, i);
         }
         TableTest(0);
+        break;
+    case 7:
+        printf("...");
+        for (int i = 1; i < N; i++) {
+            Thread * t = new Thread("fork thread");
+            t -> Fork(AlarmTest, i);
+        }
+        AlarmTest(0);
         break;
     default:
         printf("No test specified.\n");

@@ -94,6 +94,8 @@ Initialize(int argc, char **argv)
     
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
 	argCount = 1;
+    RandomInit(1);
+    randomYield = TRUE;
 	if (!strcmp(*argv, "-d")) {
 	    if (argc == 1)
 		debugArgs = "+";	// turn on all debug flags
