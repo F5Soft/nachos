@@ -16,23 +16,19 @@ public:
 class DLList
 {
 public:
-    DLList(char *lockname); //加入lock
+    DLList(); //加入lock
     ~DLList();
 
     void Prepend(void *item);
-    void Append(void *item, int s, int t);
+    void Append(void *item);
     void *Remove(int *keyPtr);
     bool IsEmpty();
-    void SortedInsert(void *item, int sortKey, int testnum, int tid);
-    void *SortedRemove(int sortKey, int testnum, int tid);
+    void SortedInsert(void *item, int sortKey);
+    void *SortedRemove(int sortKey);
 
 private:
     DLLElement *first; // head of the list, NULL if empty
     DLLElement *last;  // last element of the list, NULL if empty
     Lock *lock;
 };
-
-void CreateN(DLList *list, int n, int *back);
-void RemoveN(DLList *list, int n);
-
 #endif

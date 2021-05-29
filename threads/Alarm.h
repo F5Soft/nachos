@@ -5,22 +5,18 @@
 #include "system.h"
 #include "dllist.h"
 
-void check(int which);
+void Check(int tid);
 
 class Alarm {
-
-    static Alarm *instance;
-    static void new_instance();
 
   public:
     Alarm();
     ~Alarm();
 
-    void Pause(int howLong);
+    void Pause(int howLong, void check(int));
     void CheckIfDue();
-    
     int Getpausenum();
-	
+
   private:
     DLList *queue;			
     int pausenum;
