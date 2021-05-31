@@ -1,7 +1,7 @@
 #include "copyright.h"
 #include "system.h"
 #include "synch.h"
-
+#include "EventBarrier.h"
 #include "dllist.h"
 #include "BoundBuffer.h"
 //sleep会唤醒就绪态进程
@@ -19,6 +19,8 @@ DLList *list = new DLList("l1");
 BoundedBuffer *buffer = new BoundedBuffer(10);
 
 Table *table = new Table(10);
+
+EventBarrier *Test_Barrier=new EventBarrier("t");
 
 void Test(int tid)
 {
@@ -230,6 +232,21 @@ void TableTest(int tid)
     }
 }
 
+void BarrierTest(int tid){
+    if(tid==0){   //线程0模拟控制线程
+        while(Test_Barrier->Waiters()<4){
+            //  printf("%d\n", Test_Barrier->Waiters());
+            currentThread->Yield();
+        }
+        Test_Barrier->Signal();
+        printf("threads 0 is wake up\n");
+    }
+    else{
+        Test_Barrier->Wait();
+        printf("threads %d is wake up\n",tid);
+    }
+}
+
 void ThreadTest()
 {
     Thread *t;
@@ -307,10 +324,19 @@ void ThreadTest()
         printf("Init a 10 slots table.\nThread 0 to T want to insert data into the table and then remove it\n");
         for (int i = 1;i <= T; i++)
         {
-            Thread *t = new Thread("fork thread");
+            t = new Thread("fork thread");
             t -> Fork(TableTest, i);
         }
         TableTest(0);
+        break;
+    case 10:
+        printf("test\n");
+        for (int i = 1;i <= 4; i++)
+        {
+            t = new Thread("fork thread");
+            t -> Fork(BarrierTest, i);
+        }
+        BarrierTest(0);
         break;
     default:
         printf("No test specified.\n");
