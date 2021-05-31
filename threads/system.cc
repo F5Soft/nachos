@@ -62,7 +62,7 @@ extern void Cleanup();
 static void
 TimerInterruptHandler(int dummy)
 {
-    alarm->CheckIfDue();
+    //alarm->CheckIfDue();
     if (interrupt->getStatus() != IdleMode)
 	interrupt->YieldOnReturn();
 }

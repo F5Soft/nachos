@@ -25,8 +25,11 @@ EventBarrier::~EventBarrier(){
 void 
 EventBarrier::Signal(){
 	Thread *thread;
+    
     sMutex->Acquire();  //同一时刻只有一个调用Signal;可被Wait打断？，空队列时不会出现两个Signal
+    
     State=SIGNALED;
+    
     thread = (Thread *)queue->Remove();
     if(thread==NULL)
     {
@@ -39,9 +42,11 @@ EventBarrier::Signal(){
     }
     while(thread != NULL)    // make thread ready, consuming the V immediately
     {
+        
     	WakeNum->V();
         thread = (Thread *)queue->Remove();
     }
+    
     Finish->P();
     State=UNSIGNALED;
     sMutex->Release();

@@ -116,7 +116,7 @@ void Lock::Acquire()
 {
     ASSERT(!isHeldByCurrentThread());
     IntStatus oldLevel = interrupt->SetLevel(IntOff); // 关中断
-
+    
     while (value == 0)
     {
         queue->Append((void *)currentThread);
@@ -124,8 +124,8 @@ void Lock::Acquire()
     }
     value = 0;
     helder = currentThread;
-
     (void)interrupt->SetLevel(oldLevel); //开中断
+    
 }
 
 void Lock::Release()
