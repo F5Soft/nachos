@@ -1,4 +1,5 @@
 #include "dllist.h"
+#include "synch.h"
 #include "system.h"
 
 DLLElement::DLLElement(void *itemPtr, int sortKey)
@@ -9,11 +10,11 @@ DLLElement::DLLElement(void *itemPtr, int sortKey)
     prev = NULL;
 }
 
-DLList::DLList(char *lockname)
+DLList::DLList()
 {
     first = NULL;
     last = NULL;
-    lock = new Lock(lockname);
+    lock = new Lock("dllist");
 }
 
 DLList::~DLList()
@@ -42,17 +43,12 @@ void DLList::Prepend(void *item)
     lock->Release();
 }
 
-void DLList::Append(void *item, int testnum, int tid)
+void DLList::Append(void *item)
 {
     lock->Acquire();
     DLLElement *elem;
     if (last == NULL)
     {
-        if (testnum == 4 && tid == 0)
-        {
-            printf("Thread is preempted\n");
-            currentThread->Yield();
-        }
         elem = new DLLElement(item, 0);
         first = last = elem;
     }
@@ -63,7 +59,6 @@ void DLList::Append(void *item, int testnum, int tid)
         last->next = elem;
         last = elem;
     }
-    printf("Thread %d append point whose value is %d\n", tid, elem->key);
     lock->Release();
 }
 
@@ -94,7 +89,7 @@ bool DLList::IsEmpty()
     return first == NULL && last == NULL;
 }
 
-void DLList::SortedInsert(void *item, int sortKey, int testnum, int tid)
+void DLList::SortedInsert(void *item, int sortKey)
 {
     lock->Acquire();
     DLLElement *pos = first;
@@ -115,11 +110,6 @@ void DLList::SortedInsert(void *item, int sortKey, int testnum, int tid)
         first = elem;
         lock->Release();
         return;
-    }
-    if (testnum == 6 && tid == 0)
-    {
-        printf("Thread is preempted\n");
-        currentThread->Yield();
     }
     // pos, *, pos->next
     while (pos->next != NULL)
@@ -143,7 +133,7 @@ void DLList::SortedInsert(void *item, int sortKey, int testnum, int tid)
     return;
 }
 
-void *DLList::SortedRemove(int sortKey, int testnum, int tid)
+void *DLList::SortedRemove(int sortKey)
 {
     lock->Acquire();
     DLLElement *elem = first;
@@ -160,21 +150,9 @@ void *DLList::SortedRemove(int sortKey, int testnum, int tid)
                 elem->next->prev = elem->prev;
             else
                 last = elem->prev;
-            printf("threads %d remove point %d successfully\n", tid, elem->key);
-            if (testnum == 5 && tid == 1)
-            {
-                elem->next = NULL; //直接删除会出现段错误，为了演示，暂时把它置为空
-                elem->prev = NULL;
-            }
-            else
-                delete elem;
+            delete elem;
             lock->Release();
             return item;
-        }
-        if (testnum == 5 && tid == 0 && elem->key == 2)
-        {
-            printf("Thread is preempted\n");
-            currentThread->Yield();
         }
         elem = elem->next;
     }

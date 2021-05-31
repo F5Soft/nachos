@@ -7,7 +7,9 @@
 
 #include "copyright.h"
 #include "system.h"
+#include "Alarm.h"
 
+Alarm *alarm;
 // This defines *all* of the global data structures used by Nachos.
 // These are all initialized and de-allocated by this file.
 
@@ -60,6 +62,7 @@ extern void Cleanup();
 static void
 TimerInterruptHandler(int dummy)
 {
+    alarm->CheckIfDue();
     if (interrupt->getStatus() != IdleMode)
 	interrupt->YieldOnReturn();
 }
@@ -94,6 +97,8 @@ Initialize(int argc, char **argv)
     
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
 	argCount = 1;
+    RandomInit(1);
+    randomYield = TRUE;
 	if (!strcmp(*argv, "-d")) {
 	    if (argc == 1)
 		debugArgs = "+";	// turn on all debug flags
