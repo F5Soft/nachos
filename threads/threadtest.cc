@@ -16,9 +16,9 @@ int T = 5;
 
 BoundedBuffer *buffer = new BoundedBuffer(10);
 Table *table = new Table(10);
-EventBarrier *Test_Barrier=new EventBarrier("test");
+EventBarrier *Test_Barrier = new EventBarrier("test");
 
-extern Alarm* alarm;
+extern Alarm *alarm;
 
 void BoundBufferTest(int tid)
 {
@@ -79,9 +79,9 @@ void TableTest(int tid)
 // A dummy function, just to cause idle.
 void Check(int tid)
 {
-	while (alarm->Getpausenum() > 0)
-		currentThread->Yield();
-	currentThread->Finish();
+    while (alarm->Getpausenum() > 0)
+        currentThread->Yield();
+    currentThread->Finish();
 }
 
 void AlarmTest(int which)
@@ -92,20 +92,21 @@ void AlarmTest(int which)
     printf("thread %d is ok now=%d\n", which, stats->totalTicks);
 }
 
-void BarrierTest(int tid){
-    if(tid==0){   //线程0模拟控制线程
-        while(Test_Barrier->Waiters()<4){
-            
-            //  printf("%d\n", Test_Barrier->Waiters());
+void BarrierTest(int tid)
+{
+    if (tid == 0)
+    { //线程0模拟控制线程
+        while (Test_Barrier->Waiters() < 4)
+        {
             currentThread->Yield();
         }
         Test_Barrier->Signal();
         printf("threads 0 is wake up\n");
     }
-    else{
-        
+    else
+    {
         Test_Barrier->Wait();
-        printf("threads %d is wake up\n",tid);
+        printf("threads %d is wake up\n", tid);
     }
 }
 
@@ -128,7 +129,7 @@ void ThreadTest()
         for (int i = 1; i <= T; i++)
         {
             t = new Thread("fork thread");
-            t -> Fork(TableTest, i);
+            t->Fork(TableTest, i);
         }
         TableTest(0);
         break;
@@ -142,10 +143,10 @@ void ThreadTest()
         AlarmTest(0);
         break;
     case 10:
-        for (int i = 1;i <= 4; i++)
+        for (int i = 1; i <= 4; i++)
         {
             t = new Thread("fork thread");
-            t -> Fork(BarrierTest, i);
+            t->Fork(BarrierTest, i);
         }
         BarrierTest(0);
         break;
